@@ -1,0 +1,14 @@
+services:
+  frontend:
+    build:
+      context: ./frontend/react-app
+    ports:
+      - '127.0.0.1:${FRONTEND_PORT}:${FRONTEND_PORT}' # Standaardpoort voor Vite (frontend)
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - '127.0.0.1:${BACKEND_PORT}:${BACKEND_PORT}' # Poort voor de backend
+    environment:
+      USE_DATABASE: 'false' # Zet op "false" als je geen database nodig hebt
