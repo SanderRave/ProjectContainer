@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Exposeer de poort waarop Vite draait
-EXPOSE 5173
+EXPOSE ${FRONTEND_PORT:-5173}
 
 # Start de applicatie
 CMD ["npm", "run", "dev"]

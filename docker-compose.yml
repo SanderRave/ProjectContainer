@@ -1,14 +1,38 @@
+version: '3.8'
+
+volumes:
+  backend_code:
+  frontend_code:
+
 services:
   frontend:
     build:
       context: ./frontend/react-app
     ports:
       - '127.0.0.1:${FRONTEND_PORT}:${FRONTEND_PORT}' # Standaardpoort voor Vite (frontend)
-
-  backend:
-    build:
-      context: ./backend
-    ports:
-      - '127.0.0.1:${BACKEND_PORT}:${BACKEND_PORT}' # Poort voor de backend
-    environment:
-      USE_DATABASE: 'false' # Zet op "false" als je geen database nodig hebt
+    volumes:
+      - ./frontend/react-app:/usr/src/app
+    env_file:
+      - .env
+frontend:
+  healthcheck:
+  test: ['CMD', 'curl', '-f', 'http://localhost:${FRONTEND_PORT}']
+  interval: 30s
+  timeout: 10s
+  retries: 3
+backend:
+  build:
+    context: ./backend
+  ports:
+    - '127.0.0.1:${BACKEND_PORT}:${BACKEND_PORT}' # Poort voor de backend
+  volumes:
+    - ./backend:/usr/src/app
+  env_file:
+    - .env
+  environment:
+    USE_DATABASE: 'false' # false om de database niet te gebruiken
+  healthcheck:
+    test: ['CMD', 'curl', '-f', 'http://localhost:${BACKEND_PORT}']
+    interval: 30s
+    timeout: 10s
+    retries: 3
