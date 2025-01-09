@@ -27,6 +27,16 @@ This project provides a standardized container solution for websites. It consist
 - **Node.js + Express**: A lightweight and fast backend framework for dynamic API routes and REST API interaction.
 - **PHP (WordPress CMS)**: For connecting to and managing WordPress systems when needed.
 
+### 5. Swagger API Documentation
+
+- **Swagger UI**: Provides an interactive API documentation interface available at `/api-docs`.
+- **Configuration**: Swagger documentation is loaded from the `swagger.json` file located in the `docs` directory. If this file is unavailable or malformed, the application will log an error and skip loading the Swagger UI.
+
+### 6. WordPress Integration
+
+- **API Support**: The backend supports fetching posts from a WordPress site using its REST API.
+- **Environment Variable**: The `WORDPRESS_API_URL` must be defined in the `.env` file for the `/api/posts` route to function correctly.
+
 ---
 
 ## Containers
@@ -48,8 +58,10 @@ This project provides a standardized container solution for websites. It consist
 ### Backend
 
 - Runs on port **3000**.
+- Supports WordPress API integration via the `/api/posts` route.
 - Optionally connects to a MySQL database using the `USE_DATABASE` environment variable.
-- Configurable via `.env` for dynamic port management.
+- Includes Swagger API documentation at `/api-docs`.
+- Configurable via `.env` for dynamic port management and WordPress integration.
 
 ### Database
 
@@ -70,6 +82,7 @@ FRONTEND_PORT=5173
 # Backend
 BACKEND_PORT=3000
 USE_DATABASE=false
+WORDPRESS_API_URL=https://your-wordpress-site.com
 
 # Database (optional)
 MYSQL_USER=root
@@ -97,6 +110,7 @@ MYSQL_PORT=3306
    FRONTEND_PORT=5173
    BACKEND_PORT=3000
    USE_DATABASE=false
+   WORDPRESS_API_URL=https://your-wordpress-site.com
    MYSQL_USER=root
    MYSQL_PASSWORD=rootpassword
    MYSQL_DATABASE=my_database
@@ -112,6 +126,7 @@ MYSQL_PORT=3306
 4. Access the services:
    - Frontend: [http://localhost:5173](http://localhost:5173)
    - Backend: [http://localhost:3000](http://localhost:3000)
+   - Swagger API Documentation: [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
 
 ---
 
@@ -130,7 +145,31 @@ MYSQL_PORT=3306
    - Use tools like `nodemon` for automatic restarts when files change (already configured).
 
 4. **Healthchecks:**
+
    - The backend and frontend services include healthchecks to ensure they are running as expected.
+
+5. **Swagger Debugging**:
+
+   - If the `swagger.json` file is not present or malformed, the application will log an error:
+
+     ```
+     Failed to load swagger.json: <error message>
+     Swagger documentation not available. Check swagger.json.
+     ```
+
+   - Ensure the file is located at `docs/swagger.json` relative to the project root and contains valid JSON.
+
+6. **WordPress Integration**:
+
+   - The `/api/posts` route fetches posts from a WordPress site. Ensure the `WORDPRESS_API_URL` variable is set in `.env`.
+
+   - Example:
+
+     ```env
+     WORDPRESS_API_URL=https://example.com
+     ```
+
+   - If the variable is not set, the route will return a `503` error indicating that the URL is missing.
 
 ---
 

@@ -1,15 +1,26 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    host: true, // Hiermee luistert Vite op alle netwerken
-    port: 5173, // Zorg ervoor dat dit overeenkomt met je poortmapping
-    strictPort: true, // Forceert gebruik van de opgegeven poort en voorkomt fallback
-    watch: {
-      usePolling: true, // Handig voor bestanden die live wijzigen binnen Docker
+export default defineConfig(({ mode }) => {
+  // Laad expliciet de .env-variabelen uit de projectroot
+  const env = loadEnv(mode, process.cwd(), 'VITE_');
+
+  // Controleer of de variabelen correct worden geladen
+  console.log(`VITE_BACKEND_PORT: ${env.VITE_BACKEND_PORT || 'Not loaded'}`);
+  console.log(`VITE_BACKEND_HOST: ${env.VITE_BACKEND_HOST || 'Not loaded'}`);
+
+  return {
+    plugins: [react()],
+    server: {
+      host: 'localhost',
+      port: Number(env.VITE_FRONTEND_PORT || 5173), // Gebruik standaard 5173 als fallback
+      proxy: {
+        '/api': {
+          target: `${env.VITE_BACKEND_HOST}:${env.VITE_BACKEND_PORT}`,
+          changeOrigin: true,
+          secure: false,
+        },
+      },
     },
-  },
+  };
 });

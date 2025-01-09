@@ -1,39 +1,44 @@
 import express from 'express';
-import mysql from 'mysql2/promise'; // Importeer MySQL-module
+import axios from 'axios'; // Importeer Axios voor WordPress API-verzoeken
+import dotenv from 'dotenv'; // Importeer dotenv-module
+import swaggerUi from 'swagger-ui-express'; // Importeer Swagger UI
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Resolving the correct __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Probeer swagger.json in te lezen met foutafhandeling
+let swaggerDocument;
+try {
+  const swaggerPath = path.join(__dirname, 'docs', 'swagger.json');
+  const swaggerData = fs.readFileSync(swaggerPath, 'utf-8');
+  swaggerDocument = JSON.parse(swaggerData);
+  console.log('Swagger documentation loaded successfully.');
+} catch (err) {
+  console.error('Failed to load swagger.json:', err.message);
+  swaggerDocument = null; // Optioneel: Gebruik een leeg document of sla deze stap over
+}
+
 import apiRoutes from './routes/api.js'; // Importeer de routes
+
+dotenv.config(); // Laad de omgevingsvariabelen uit het .env-bestand
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Controleer of de database gebruikt moet worden via een environment variable
-const useDatabase = process.env.USE_DATABASE === 'true';
-
-// Dynamische databasefunctie
-let pool;
-const getDatabaseConnection = async () => {
-  if (!useDatabase) {
-    throw new Error('Database connection is disabled.');
-  }
-
-  if (!pool) {
-    pool = mysql.createPool({
-      host: 'db', // Servicenaam gedefinieerd in docker-compose.yml
-      user: process.env.MYSQL_USER || 'wp_user',
-      password: process.env.MYSQL_PASSWORD || 'wp_password',
-      database: process.env.MYSQL_DATABASE || 'wp_database',
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-    });
-
-    console.log('Database pool initialized.');
-  }
-
-  return pool;
-};
+const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL; // WordPress URL uit .env
 
 // Middleware om JSON-verzoeken te ondersteunen
 app.use(express.json());
+
+// Verbind Swagger UI met je API-documentatie (indien beschikbaar)
+if (swaggerDocument) {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+} else {
+  console.warn('Swagger documentation not available. Check swagger.json.');
+}
 
 // Verbind de API-routes
 app.use('/api', apiRoutes);
@@ -41,41 +46,32 @@ app.use('/api', apiRoutes);
 // Default route
 app.get('/', (req, res) => {
   res.send('Backend is running!');
+  console.log('Backend default route accessed.');
 });
 
-// Optionele API-route voor databaseconnectie testen
-app.get('/db-test', async (req, res) => {
+// API-route om gegevens van WordPress op te halen
+app.get('/api/posts', async (req, res) => {
   try {
-    const pool = await getDatabaseConnection();
-    const [rows] = await pool.query('SELECT NOW() AS currentTime');
-    res.json({ message: 'Database connection successful!', data: rows });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ error: 'Database query failed.', details: err.message });
-  }
-});
-
-// API-route om dynamisch data te halen of een foutmelding te geven als de database is uitgeschakeld
-app.get('/data', async (req, res) => {
-  try {
-    const pool = await getDatabaseConnection();
-    const [rows] = await pool.query('SELECT * FROM some_table'); // Vervang 'some_table' door een bestaande tabelnaam
-    res.json({ data: rows });
-  } catch (err) {
-    if (!useDatabase) {
-      res
-        .status(503)
-        .json({ message: 'Database is disabled. No data is available.' });
-    } else {
-      res
-        .status(500)
-        .json({ message: 'Database query failed.', details: err.message });
+    if (!WORDPRESS_API_URL) {
+      throw new Error(
+        'WORDPRESS_API_URL is not defined in the environment variables.'
+      );
     }
+    const response = await axios.get(`${WORDPRESS_API_URL}/wp/v2/posts`);
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching data from WordPress:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch data from WordPress',
+      details: error.message,
+    });
   }
 });
 
 // Start de server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  if (swaggerDocument) {
+    console.log(`Swagger Docs available at http://localhost:${PORT}/api-docs`);
+  }
 });

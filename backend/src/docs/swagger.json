@@ -1,0 +1,42 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Backend API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Default route",
+        "responses": {
+          "200": {
+            "description": "Default route is reachable",
+            "content": {
+              "application/json": {
+                "example": { "message": "Backend is running!" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/db-test": {
+      "get": {
+        "summary": "Test database connection",
+        "responses": {
+          "200": {
+            "description": "Database connection successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Database connection successful!",
+                  "data": [{ "currentTime": "2024-01-01T12:00:00.000Z" }]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
