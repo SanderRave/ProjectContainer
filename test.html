@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rijkswaterstaat Data Test</title>
+  </head>
+  <body>
+    <h1>Test Rijkswaterstaat Data Fetch</h1>
+
+    <button id="fetchData">Fetch Data</button>
+    <pre
+      id="responseOutput"
+      style="
+        background: #f4f4f4;
+        padding: 1em;
+        border: 1px solid #ccc;
+        margin-top: 1em;
+      "
+    ></pre>
+
+    <script>
+      // Event listener for fetching data
+      document
+        .getElementById('fetchData')
+        .addEventListener('click', async () => {
+          const responseOutput = document.getElementById('responseOutput');
+          responseOutput.textContent = 'Fetching data...';
+
+          try {
+            // Fetch data from the backend
+            const response = await fetch(
+              'http://localhost:3000/api/rws/details',
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  LocatieLijst: [
+                    { Code: 'HOEK', X: 576917.675576278, Y: 5759136.13463449 },
+                  ],
+                  AquoPlusWaarnemingMetadataLijst: [
+                    {
+                      AquoMetadata: {
+                        Compartiment: { Code: 'OW' },
+                        Grootheid: { Code: 'T' },
+                      },
+                    }, // Water temperature
+                    {
+                      AquoMetadata: {
+                        Compartiment: { Code: 'LT' },
+                        Grootheid: { Code: 'T' },
+                      },
+                    }, // Air temperature
+                  ],
+                }),
+              }
+            );
+
+            // Handle response
+            if (!response.ok) {
+              throw new Error(
+                `Error: ${response.status} ${response.statusText}`
+              );
+            }
+
+            const data = await response.json();
+            console.log('Data ontvangen van backend:', data);
+
+            // Display the data in the pre element
+            responseOutput.textContent = JSON.stringify(data, null, 2);
+          } catch (error) {
+            console.error('Fout bij het ophalen van data:', error.message);
+            responseOutput.textContent = `Error: ${error.message}`;
+          }
+        });
+    </script>
+  </body>
+</html>

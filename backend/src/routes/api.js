@@ -1,9 +1,22 @@
 import express from 'express';
-import { getExample } from '../controllers/exampleController.js'; // Importeer de controller
+import { getECMWFData } from '../controllers/ecmwfController.js';
+import { getKNMIData } from '../controllers/knmiController.js';
+import { getRWSData } from '../controllers/rwsController.js';
 
 const router = express.Router();
 
-// Definieer de route
-router.get('/example', getExample);
+// RWS API - Algemeen
+router.post('/rws/details', getRWSData);
 
-export default router; // Exporteer de router voor gebruik in app.js
+// KNMI API
+router.get('/knmi/:endpoint', getKNMIData);
+
+// ECMWF API
+router.get('/ecmwf/:endpoint', getECMWFData);
+
+export default router;
+
+router.post('/rws/details', (req, res, next) => {
+  console.log('[API Router] POST /rws/details aangeroepen');
+  next(); // Ga verder naar de controller
+});
