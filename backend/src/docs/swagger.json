@@ -37,6 +37,61 @@
           }
         }
       }
+    },
+    "/api/knmi/hoek-van-holland/last-three-hours": {
+      "get": {
+        "summary": "Get last three hours KNMI data",
+        "description": "Fetches KNMI data for the last three hours for Hoek van Holland location.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "dd_10": 230,
+                  "ff_10m_10": 15,
+                  "fx_10m_10": 20,
+                  "p_nap_msl_10": 1013.2
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid parameters",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Invalid parameters",
+                  "message": "Parameter 'datetime' is required."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Missing or invalid API key."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Failed to fetch data for the last three hours",
+                  "message": "Unexpected error occurred while fetching KNMI data."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

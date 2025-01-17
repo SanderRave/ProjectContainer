@@ -3,32 +3,95 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rijkswaterstaat Data Test</title>
+    <title>KNMI & Rijkswaterstaat Data Test</title>
   </head>
   <body>
-    <h1>Test Rijkswaterstaat Data Fetch</h1>
+    <h1>Test KNMI & Rijkswaterstaat Data Fetch</h1>
 
-    <button id="fetchData">Fetch Data</button>
-    <pre
-      id="responseOutput"
-      style="
-        background: #f4f4f4;
-        padding: 1em;
-        border: 1px solid #ccc;
-        margin-top: 1em;
-      "
-    ></pre>
+    <!-- KNMI Data Fetch Section -->
+    <section>
+      <h2>KNMI Data</h2>
+      <button id="fetchKNMIData">Fetch KNMI Data</button>
+      <pre
+        id="responseOutputKNMI"
+        style="
+          background: #f4f4f4;
+          padding: 1em;
+          border: 1px solid #ccc;
+          margin-top: 1em;
+          white-space: pre-wrap;
+          word-wrap: break-word;
+        "
+      ></pre>
+    </section>
+
+    <!-- Rijkswaterstaat Data Fetch Section -->
+    <section>
+      <h2>Rijkswaterstaat Data</h2>
+      <button id="fetchRWSData">Fetch Rijkswaterstaat Data</button>
+      <pre
+        id="responseOutputRWS"
+        style="
+          background: #f4f4f4;
+          padding: 1em;
+          border: 1px solid #ccc;
+          margin-top: 1em;
+          white-space: pre-wrap;
+          word-wrap: break-word;
+        "
+      ></pre>
+    </section>
 
     <script>
-      // Event listener for fetching data
+      // KNMI Data Fetch Logic
       document
-        .getElementById('fetchData')
+        .getElementById('fetchKNMIData')
         .addEventListener('click', async () => {
-          const responseOutput = document.getElementById('responseOutput');
-          responseOutput.textContent = 'Fetching data...';
+          const responseOutput = document.getElementById('responseOutputKNMI');
+          responseOutput.textContent = 'Fetching KNMI data...';
 
           try {
-            // Fetch data from the backend
+            const response = await fetch(
+              'http://localhost:3000/api/knmi/hoek-van-holland/last-three-hours',
+              {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+              }
+            );
+
+            if (!response.ok) {
+              let errorDetails = 'No additional details provided.';
+              try {
+                errorDetails = await response.json();
+              } catch (parseError) {
+                console.error('Failed to parse error details:', parseError);
+              }
+
+              throw new Error(
+                `Error: ${response.status} ${
+                  response.statusText
+                }. Details: ${JSON.stringify(errorDetails)}`
+              );
+            }
+
+            const data = await response.json();
+            console.log('KNMI Data ontvangen van backend:', data);
+
+            responseOutput.textContent = JSON.stringify(data, null, 2);
+          } catch (error) {
+            console.error('Fout bij het ophalen van KNMI-data:', error.message);
+            responseOutput.textContent = `Error: ${error.message}`;
+          }
+        });
+
+      // Rijkswaterstaat Data Fetch Logic
+      document
+        .getElementById('fetchRWSData')
+        .addEventListener('click', async () => {
+          const responseOutput = document.getElementById('responseOutputRWS');
+          responseOutput.textContent = 'Fetching Rijkswaterstaat data...';
+
+          try {
             const response = await fetch(
               'http://localhost:3000/api/rws/details',
               {
@@ -44,19 +107,18 @@
                         Compartiment: { Code: 'OW' },
                         Grootheid: { Code: 'T' },
                       },
-                    }, // Water temperature
+                    },
                     {
                       AquoMetadata: {
                         Compartiment: { Code: 'LT' },
                         Grootheid: { Code: 'T' },
                       },
-                    }, // Air temperature
+                    },
                   ],
                 }),
               }
             );
 
-            // Handle response
             if (!response.ok) {
               throw new Error(
                 `Error: ${response.status} ${response.statusText}`
@@ -64,12 +126,14 @@
             }
 
             const data = await response.json();
-            console.log('Data ontvangen van backend:', data);
+            console.log('Rijkswaterstaat Data ontvangen van backend:', data);
 
-            // Display the data in the pre element
             responseOutput.textContent = JSON.stringify(data, null, 2);
           } catch (error) {
-            console.error('Fout bij het ophalen van data:', error.message);
+            console.error(
+              'Fout bij het ophalen van Rijkswaterstaat-data:',
+              error.message
+            );
             responseOutput.textContent = `Error: ${error.message}`;
           }
         });
